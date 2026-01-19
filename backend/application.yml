@@ -1,0 +1,13 @@
+server:
+  port: 9090
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/bankdb
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

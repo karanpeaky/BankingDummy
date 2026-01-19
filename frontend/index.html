@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Instana Digital Bank</title>
+
+<style>
+:root {
+  --primary:#0b3c5d;
+  --secondary:#328cc1;
+  --success:#2ecc71;
+  --danger:#e74c3c;
+  --bg:#f5f7fa;
+}
+body {
+  margin:0;
+  font-family:Segoe UI,Arial;
+  background:var(--bg);
+}
+header {
+  background:linear-gradient(90deg,var(--primary),var(--secondary));
+  color:white;
+  padding:20px 40px;
+}
+.container {
+  padding:30px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:20px;
+}
+.card {
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+.card h3 { margin-top:0;color:var(--primary); }
+input {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+}
+button {
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:var(--primary);
+  color:white;
+  cursor:pointer;
+}
+button:hover { background:var(--secondary); }
+button.success { background:var(--success); }
+button.danger { background:var(--danger); }
+
+.output {
+  grid-column:1/-1;
+  background:black;
+  color:#00ffcc;
+  padding:15px;
+  font-family:monospace;
+  min-height:150px;
+}
+
+/* Toast popup */
+.toast {
+  position:fixed;
+  top:20px;
+  right:20px;
+  padding:15px 20px;
+  border-radius:8px;
+  color:white;
+  opacity:0;
+  transition:.4s;
+  z-index:9999;
+  white-space:pre-line;
+}
+.toast.show { opacity:1; }
+.toast.success { background:#2ecc71; }
+.toast.error { background:#e74c3c; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🏦 Instana Digital Banking Platform</h2>
+</header>
+
+<div class="container">
+
+<!-- Open Account -->
+<div class="card">
+<h3>🆕 Open Account</h3>
+<input id="openId" placeholder="Account ID">
+<input id="openUser" placeholder="User">
+<input id="openBalance" placeholder="Initial Balance">
+<button class="success" onclick="openAccount()">Create Account</button>
+</div>
+
+<!-- Balance -->
+<div class="card">
+<h3>💰 Balance Check</h3>
+<input id="balanceId" placeholder="Account ID">
+<button onclick="checkBalance()">Check Balance</button>
+</div>
+
+<!-- Credit -->
+<div class="card">
+<h3>➕ Credit</h3>
+<input id="creditId" placeholder="Account ID">
+<input id="creditAmount" placeholder="Amount">
+<button onclick="credit()">Credit</button>
+</div>
+
+<!-- Debit -->
+<div class="card">
+<h3>➖ Debit</h3>
+<input id="debitId" placeholder="Account ID">
+<input id="debitAmount" placeholder="Amount">
+<button onclick="debit()">Debit</button>
+</div>
+
+<!-- ATM -->
+<div class="card">
+<h3>🏧 ATM Withdraw</h3>
+<input id="atmId" placeholder="Account ID">
+<input id="atmAmount" placeholder="Amount">
+<button class="danger" onclick="atmWithdraw()">Withdraw</button>
+</div>
+
+<!-- Fund Transfer (NEW, empty slot used) -->
+<div class="card">
+<h3>🔁 Fund Transfer</h3>
+<input id="fromId" placeholder="From Account ID">
+<input id="toId" placeholder="To Account ID">
+<input id="transferAmount" placeholder="Amount">
+<button onclick="transfer()">Transfer</button>
+</div>
+
+<!-- Bottom Status Box (UNCHANGED) -->
+<div class="output" id="output">Waiting for action…</div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const API="http://localhost:9090";
+
+function show(d){
+  output.textContent = JSON.stringify(d,null,2);
+}
+
+function toast(msg, ok=true){
+  let t=document.getElementById("toast");
+  t.className="toast "+(ok?"success":"error");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),4000);
+}
+
+function openAccount(){
+fetch(API+"/api/account/open",{
+  method:"POST",
+  headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({
+    id:openId.value,
+    user:openUser.value,
+    initialBalance:+openBalance.value
+  })
+})
+.then(r=>r.json())
+.then(d=>{
+  show(d);
+  toast(`Account Created\nAccount (${d.id}): ₹${d.balance}`);
+});
+}
+
+function checkBalance(){
+fetch(API+"/api/account/balance/"+balanceId.value)
+.then(r=>r.json())
+.then(d=>{
+  show(d);
+  toast(`Balance\nAccount (${d.id}): ₹${d.balance}`);
+});
+}
+
+function credit(){
+fetch(`${API}/api/account/credit?id=${creditId.value}&amount=${creditAmount.value}`,{method:"POST"})
+.then(r=>r.json())
+.then(d=>{
+  show(d);
+  toast(`Credit Successful\nAccount (${d.id}): ₹${d.balance}`);
+});
+}
+
+function debit(){
+fetch(`${API}/api/account/debit?id=${debitId.value}&amount=${debitAmount.value}`,{method:"POST"})
+.then(r=>r.json())
+.then(d=>{
+  show(d);
+  toast(`Debit Successful\nAccount (${d.id}): ₹${d.balance}`);
+});
+}
+
+function atmWithdraw(){
+fetch(`${API}/api/atm/withdraw?id=${atmId.value}&amount=${atmAmount.value}`,{method:"POST"})
+.then(r=>{ if(!r.ok) throw 0; return r.json(); })
+.then(d=>{
+  show(d);
+  toast(`ATM Withdraw Successful\nAccount (${d.id}): ₹${d.balance}`);
+})
+.catch(()=>{
+  show({error:"INSUFFICIENT_BALANCE"});
+  toast("ATM Withdraw Failed",false);
+});
+}
+
+function transfer(){
+fetch(`${API}/api/account/transfer?fromId=${fromId.value}&toId=${toId.value}&amount=${transferAmount.value}`,{
+  method:"POST"
+})
+.then(r=>{ if(!r.ok) throw 0; return r.json(); })
+.then(d=>{
+  show(d);
+  toast(
+`Transfer Successful
+From Account (${d.fromAccount.id}): ₹${d.fromAccount.balance}
+To Account (${d.toAccount.id}): ₹${d.toAccount.balance}`
+  );
+})
+.catch(()=>{
+  show({error:"TRANSFER_FAILED"});
+  toast("Transfer Failed",false);
+});
+}
+</script>
+
+</body>
+</html>
