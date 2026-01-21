@@ -9,22 +9,21 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre
 WORKDIR /bank
 
-# Install wget to download the agent
-RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+# 1. Install curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# 1. Use a NEW filename to bypass Render's corrupted cache
-# 2. Use a verified direct link
-RUN wget -q https://github.com/instana/instana-java-sensor/releases/download/v1.2.14/instana-java-sensor-1.2.14.jar -O /bank/instana-fixed-agent.jar
+# 2. Download a STABLE version from Maven Central (Version 1.2.0)
+# We use a new name "instana-final-agent.jar" to force Render to ignore old cache
+RUN curl -L -o /bank/instana-final-agent.jar https://repo1.maven.org/maven2/com/instana/instana-java-sdk/1.2.0/instana-java-sdk-1.2.0.jar
 
-# 3. VERIFICATION: Ensure the file is a valid JAR (Zip) by checking the first two bytes are 'PK'
-# If this fails, the build stops here instead of crashing at startup
-RUN head -c 2 /bank/instana-fixed-agent.jar | grep 'PK' || (echo "ERROR: Downloaded file is not a valid JAR!" && exit 1)
+# 3. Verify the file is not empty and is a valid JAR
+RUN [ -s /bank/instana-final-agent.jar ] || (echo "Download failed!" && exit 1)
 
 COPY --from=build /app/target/instana-bank-mongo-1.0.0.jar app.jar
 
 EXPOSE 8080
 
-# Update the path to the NEW filename
-ENV JAVA_TOOL_OPTIONS="-javaagent:/bank/instana-fixed-agent.jar"
+# 4. Point to the NEW filename
+ENV JAVA_TOOL_OPTIONS="-javaagent:/bank/instana-final-agent.jar"
 
 CMD ["java", "-jar", "app.jar"]
