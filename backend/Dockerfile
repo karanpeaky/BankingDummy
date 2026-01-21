@@ -9,14 +9,13 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Download Instana Agent - Verified URL with version v1.2.14
-ADD https://github.com/instana/instana-java-sensor/releases/download/v1.2.14/instana-java-sensor-1.2.14.jar /app/instana-agent.jar
+# We now COPY the file from your repository instead of downloading it
+COPY instana-agent.jar /app/instana-agent.jar
 
 COPY --from=build /app/target/instana-bank-mongo-1.0.0.jar app.jar
 EXPOSE 8080
 
-# Attach the agent automatically
+# Attach the agent
 ENV JAVA_TOOL_OPTIONS="-javaagent:/app/instana-agent.jar"
 
 CMD ["java", "-jar", "app.jar"]
-
