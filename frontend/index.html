@@ -3,23 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>Instana Digital Bank</title>
-
-<!-- ================= INSTANA EUM (BLUE SAAS) ================= -->
 <script>
   (function(s,t,a,n){s[t]||(s[t]=a,n=s[a]=function(){n.q.push(arguments)},
   n.q=[],n.v=2,n.l=1*new Date)})(window,"InstanaEumObject","ineum");
-
   ineum('reportingUrl', 'https://eum-blue-saas.instana.io');
-  ineum('key', 'X3zK_XadSDCwN5KEv57sjA'); 
+  ineum('key', 'X3zK_XadSDCwN5KEv57sjA');
   ineum('trackSessions');
   ineum('autoPageDetection', true);
 </script>
 <script defer crossorigin="anonymous" src="https://eum.instana.io/eum.min.js"></script>
-<!-- =============================================================== -->
-
 <style>
 :root { --primary:#0b3c5d; --secondary:#328cc1; --success:#2ecc71; --danger:#e74c3c; --bg:#f5f7fa; }
-body { margin:0; font-family:Segoe UI,Arial; background:var(--bg); }
+body { margin:0; font-family:Segoe UI,Arial; background:var(--bg); padding-bottom: 50px;}
 header { background:linear-gradient(90deg,var(--primary),var(--secondary)); color:white; padding:20px 40px; }
 .container { padding:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px; }
 .card { background:white; padding:20px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,.1); }
@@ -36,52 +31,18 @@ button.danger { background:var(--danger); }
 .toast.error { background:#e74c3c; }
 </style>
 </head>
-
 <body>
 <header><h2>🏦 Instana Digital Banking Platform</h2></header>
-
 <div class="container">
-    <div class="card">
-        <h3>🆕 Open Account</h3>
-        <input id="openId" placeholder="Account ID">
-        <input id="openUser" placeholder="User Name">
-        <input id="openBalance" type="number" placeholder="Initial Balance">
-        <button class="success" onclick="openAccount()">Create Account</button>
-    </div>
-    <div class="card">
-        <h3>💰 Balance Check</h3>
-        <input id="balanceId" placeholder="Account ID">
-        <button onclick="checkBalance()">Check Balance</button>
-    </div>
-    <div class="card">
-        <h3>➕ Credit</h3>
-        <input id="creditId" placeholder="Account ID">
-        <input id="creditAmount" type="number" placeholder="Amount">
-        <button onclick="credit()">Credit</button>
-    </div>
-    <div class="card">
-        <h3>➖ Debit</h3>
-        <input id="debitId" placeholder="Account ID">
-        <input id="debitAmount" type="number" placeholder="Amount">
-        <button onclick="debit()">Debit</button>
-    </div>
-    <div class="card">
-        <h3>🏧 ATM Withdraw</h3>
-        <input id="atmId" placeholder="Account ID">
-        <input id="atmAmount" type="number" placeholder="Amount">
-        <button class="danger" onclick="atmWithdraw()">Withdraw</button>
-    </div>
-    <div class="card">
-        <h3>🔁 Fund Transfer</h3>
-        <input id="fromId" placeholder="From Account ID">
-        <input id="toId" placeholder="To Account ID">
-        <input id="transferAmount" type="number" placeholder="Amount">
-        <button onclick="transfer()">Transfer</button>
-    </div>
+    <div class="card"><h3>🆕 Open Account</h3><input id="openId" placeholder="Account ID"><input id="openUser" placeholder="User Name"><input id="openBalance" type="number" placeholder="Initial Balance"><button class="success" onclick="openAccount()">Create Account</button></div>
+    <div class="card"><h3>💰 Balance Check</h3><input id="balanceId" placeholder="Account ID"><button onclick="checkBalance()">Check Balance</button></div>
+    <div class="card"><h3>➕ Credit</h3><input id="creditId" placeholder="Account ID"><input id="creditAmount" type="number" placeholder="Amount"><button onclick="credit()">Credit</button></div>
+    <div class="card"><h3>➖ Debit</h3><input id="debitId" placeholder="Account ID"><input id="debitAmount" type="number" placeholder="Amount"><button onclick="debit()">Debit</button></div>
+    <div class="card"><h3>🏧 ATM Withdraw</h3><input id="atmId" placeholder="Account ID"><input id="atmAmount" type="number" placeholder="Amount"><button class="danger" onclick="atmWithdraw()">Withdraw</button></div>
+    <div class="card"><h3>🔁 Fund Transfer</h3><input id="fromId" placeholder="From Account ID"><input id="toId" placeholder="To Account ID"><input id="transferAmount" type="number" placeholder="Amount"><button onclick="transfer()">Transfer</button></div>
     <div class="output" id="output">Waiting for action…</div>
 </div>
 <div id="toast" class="toast"></div>
-
 <script>
 const API="https://bankingdummy.onrender.com";
 const out = document.getElementById("output");
@@ -94,39 +55,13 @@ function toast(msg, ok=true){
   setTimeout(()=>t.classList.remove("show"),4000);
 }
 function openAccount(){
-  fetch(API+"/api/account/open",{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      id:document.getElementById("openId").value,
-      user:document.getElementById("openUser").value,
-      initialBalance:+document.getElementById("openBalance").value
-    })
-  }).then(r=>r.json()).then(d=>{ show(d); toast(`Account Created: ${d.id}`); }).catch(e=>toast("Error", false));
+  fetch(API+"/api/account/open",{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify({id:document.getElementById("openId").value,user:document.getElementById("openUser").value,initialBalance:+document.getElementById("openBalance").value})}).then(r=>r.json()).then(d=>{show(d);toast(`Account Created: ${d.id}`);}).catch(e=>toast("Error",false));
 }
-function checkBalance(){
-  fetch(API+"/api/account/balance/"+document.getElementById("balanceId").value)
-  .then(r=>r.json()).then(d=>{ show(d); toast(`Balance: ₹${d.balance}`); });
-}
-function credit(){
-  fetch(`${API}/api/account/credit?id=${document.getElementById("creditId").value}&amount=${document.getElementById("creditAmount").value}`,{method:"POST"})
-  .then(r=>r.json()).then(d=>{ show(d); toast("Credit OK"); });
-}
-function debit(){
-  fetch(`${API}/api/account/debit?id=${document.getElementById("debitId").value}&amount=${document.getElementById("debitAmount").value}`,{method:"POST"})
-  .then(r=>r.json()).then(d=>{ show(d); toast("Debit OK"); });
-}
-function atmWithdraw(){
-  fetch(`${API}/api/atm/withdraw?id=${document.getElementById("atmId").value}&amount=${document.getElementById("atmAmount").value}`,{method:"POST"})
-  .then(r=>{ if(!r.ok) throw 0; return r.json(); })
-  .then(d=>{ show(d); toast("Withdraw OK"); }).catch(()=>toast("Failed",false));
-}
-function transfer(){
-  fetch(`${API}/api/account/transfer?fromId=${document.getElementById("fromId").value}&toId=${document.getElementById("toId").value}&amount=${document.getElementById("transferAmount").value}`,{method:"POST"})
-  .then(r=>{ if(!r.ok) throw 0; return r.json(); })
-  .then(d=>{ show(d); toast("Transfer OK"); }).catch(()=>toast("Failed",false));
-}
+function checkBalance(){fetch(API+"/api/account/balance/"+document.getElementById("balanceId").value).then(r=>r.json()).then(d=>{show(d);toast(`Balance: ₹${d.balance}`);});}
+function credit(){fetch(`${API}/api/account/credit?id=${document.getElementById("creditId").value}&amount=${document.getElementById("creditAmount").value}`,{method:"POST"}).then(r=>r.json()).then(d=>{show(d);toast("Credit OK");});}
+function debit(){fetch(`${API}/api/account/debit?id=${document.getElementById("debitId").value}&amount=${document.getElementById("debitAmount").value}`,{method:"POST"}).then(r=>r.json()).then(d=>{show(d);toast("Debit OK");});}
+function atmWithdraw(){fetch(`${API}/api/atm/withdraw?id=${document.getElementById("atmId").value}&amount=${document.getElementById("atmAmount").value}`,{method:"POST"}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{show(d);toast("Withdraw OK");}).catch(()=>toast("Failed",false));}
+function transfer(){fetch(`${API}/api/account/transfer?fromId=${document.getElementById("fromId").value}&toId=${document.getElementById("toId").value}&amount=${document.getElementById("transferAmount").value}`,{method:"POST"}).then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{show(d);toast("Transfer OK");}).catch(()=>toast("Failed",false));}
 </script>
 </body>
 </html>
-
